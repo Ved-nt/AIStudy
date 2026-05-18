@@ -30,7 +30,7 @@ export default function Home() {
 
         <div
           onClick={() => navigate("/quiz")}
-          className="border border-white/10 p-8 rounded-2xl cursor-pointer hover:border-cyan-500/50"
+          className="border border-white/10 p-8 rounded-2xl cursor-pointer hover:border-violet-500/50"
         >
           <h2 className="text-2xl font-bold mb-3">🧠 Quiz Generator</h2>
 
