@@ -80,21 +80,44 @@ public class AIService {
     public String generateSummary(String text) {
 
         String systemPrompt = """
-                You are an expert study assistant.
-                Return ONLY valid JSON.
+            You are an expert study assistant.
 
-                Format:
-                {
-                  "summary": "2-3 sentence summary",
-                  "keyPoints": ["Point 1", "Point 2"],
-                  "keyConcepts": ["Concept 1", "Concept 2"]
-                }
-                """;
+            Analyze the provided study material carefully and return ONLY valid JSON.
 
-        return chat(
-                systemPrompt,
-                "Summarize this text:\n\n" + text
-        );
+            Rules:
+            - Do not return markdown
+            - Do not use code blocks
+            - Do not add extra text outside JSON
+            - The summary must be detailed and educational
+            - The summary should explain the important concepts clearly
+            - The summary should be around 150-300 words
+            - Extract at least 5 key points if possible
+            - Extract the most important concepts/topics
+
+            JSON Format:
+            {
+              "summary": "Detailed explanation summary",
+              "keyPoints": [
+                "Point 1",
+                "Point 2",
+                "Point 3",
+                "Point 4",
+                "Point 5"
+              ],
+              "keyConcepts": [
+                "Concept 1",
+                "Concept 2",
+                "Concept 3"
+              ]
+            }
+            """;
+
+        String userMessage = """
+            Summarize the following study notes in detail:
+
+            """ + text;
+
+        return chat(systemPrompt, userMessage);
     }
 
     public String generateQuiz(
