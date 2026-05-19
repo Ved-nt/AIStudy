@@ -2,6 +2,9 @@ package com.vedant.aisuite.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vedant.aisuite.dto.StudyRequest;
+import com.vedant.aisuite.entity.Note;
+import com.vedant.aisuite.repository.NoteRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -10,53 +13,93 @@ import java.util.*;
 public class StudyService {
 
     private final AIService AIService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final NoteRepository noteRepository;
+    private final ObjectMapper objectMapper;
 
-    // In-memory store (replace with PostgreSQL repository later)
-    private final List<Map<String, Object>> savedNotes = new ArrayList<>();
-
-    public StudyService(AIService AIService) {
+    public StudyService(
+            AIService AIService,
+            NoteRepository noteRepository,
+            ObjectMapper objectMapper
+    ) {
         this.AIService = AIService;
+        this.noteRepository = noteRepository;
+        this.objectMapper = objectMapper;
     }
 
     /**
-     * Calls OpenAI to summarize the provided text.
-     * Returns a structured map with summary, keyPoints, keyConcepts.
+     * Calls AI service to summarize notes.
      */
     public Map<String, Object> summarize(StudyRequest request) {
+
         try {
-            String rawResponse = AIService.generateSummary(request.getText());
+
+            String rawResponse =
+                    AIService.generateSummary(request.getText());
+
             @SuppressWarnings("unchecked")
-            Map<String, Object> parsed = objectMapper.readValue(rawResponse, Map.class);
-            parsed.put("originalLength", request.getText().length());
-            parsed.put("wordCount", request.getText().split("\\s+").length);
+            Map<String, Object> parsed =
+                    objectMapper.readValue(rawResponse, Map.class);
+
+            parsed.put(
+                    "originalLength",
+                    request.getText().length()
+            );
+
+            parsed.put(
+                    "wordCount",
+                    request.getText().split("\\s+").length
+            );
+
             return parsed;
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
+
+            throw new RuntimeException(
+                    "Failed to parse AI response: "
+                            + e.getMessage(),
+                    e
+            );
         }
     }
 
     /**
-     * Saves a note (study result) to the in-memory store.
+     * Saves note into PostgreSQL database.
      */
-    public Map<String, Object> saveNote(StudyRequest request, Map<String, Object> summary) {
-        Map<String, Object> note = new HashMap<>();
-        note.put("id", UUID.randomUUID().toString());
-        note.put("title", request.getTitle() != null ? request.getTitle() : "Untitled Note");
-        note.put("content", request.getText());
-        note.put("summary", summary.get("summary"));
-        note.put("keyPoints", summary.get("keyPoints"));
-        note.put("createdAt", new Date().toString());
-        savedNotes.add(note);
-        return note;
+    public Note saveNote(
+            StudyRequest request,
+            Map<String, Object> summary
+    ) {
+
+        Note note = new Note();
+
+        note.setTitle(
+                request.getTitle() != null &&
+                        !request.getTitle().isBlank()
+                        ? request.getTitle()
+                        : "Untitled Note"
+        );
+
+        note.setOriginalText(
+                request.getText()
+        );
+
+        note.setSummary(
+                summary.get("summary").toString()
+        );
+
+        return noteRepository.save(note);
     }
 
     /**
-     * Returns all saved notes in reverse chronological order.
+     * Fetch all saved notes from PostgreSQL.
      */
-    public List<Map<String, Object>> getHistory() {
-        List<Map<String, Object>> result = new ArrayList<>(savedNotes);
-        Collections.reverse(result);
-        return result;
+    public List<Note> getHistory() {
+
+        List<Note> notes =
+                noteRepository.findAll();
+
+        Collections.reverse(notes);
+
+        return notes;
     }
 }

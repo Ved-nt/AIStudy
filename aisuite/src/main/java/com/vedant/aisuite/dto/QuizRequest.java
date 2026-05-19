@@ -12,7 +12,7 @@ public class QuizRequest {
     private String difficulty = "MEDIUM"; // EASY | MEDIUM | HARD
 
     @Min(value = 3, message = "Minimum 3 questions")
-    @Max(value = 10, message = "Maximum 10 questions")
+    @Max(value = 15, message = "Maximum 15 questions")
     private int numberOfQuestions = 5;
 
     public String getTopic() { return topic; }

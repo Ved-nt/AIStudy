@@ -1,15 +1,20 @@
 package com.vedant.aisuite.controller;
 
 import com.vedant.aisuite.dto.StudyRequest;
+import com.vedant.aisuite.entity.Note;
 import com.vedant.aisuite.service.StudyService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/study")
+@CrossOrigin(origins = "http://localhost:5173")
 public class StudyController {
 
     private final StudyService studyService;
@@ -20,56 +25,87 @@ public class StudyController {
 
     /**
      * POST /api/study/summarize
-     * Body: { "text": "your notes here", "title": "optional title" }
-     * Returns: summary, keyPoints, keyConcepts, wordCount
+     * Body:
+     * {
+     *   "text": "your notes",
+     *   "title": "optional"
+     * }
      */
     @PostMapping("/summarize")
-    public ResponseEntity<?> summarize(@Valid @RequestBody StudyRequest request) {
+    public ResponseEntity<?> summarize(
+            @Valid @RequestBody StudyRequest request
+    ) {
+
         try {
-            Map<String, Object> result = studyService.summarize(request);
+
+            Map<String, Object> result =
+                    studyService.summarize(request);
+
             return ResponseEntity.ok(result);
+
         } catch (Exception e) {
+
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of(
+                            "error",
+                            e.getMessage()
+                    ));
         }
     }
 
     /**
      * POST /api/study/save
-     * Body: { "text": "notes", "title": "My Notes" }
-     * Returns: saved note with generated ID and timestamp
+     * Saves note in PostgreSQL
      */
     @PostMapping("/save")
-    public ResponseEntity<?> save(@Valid @RequestBody StudyRequest request) {
+    public ResponseEntity<?> save(
+            @Valid @RequestBody StudyRequest request
+    ) {
+
         try {
-            Map<String, Object> summary = studyService.summarize(request);
-            Map<String, Object> saved = studyService.saveNote(request, summary);
-            return ResponseEntity.ok(saved);
+
+            Map<String, Object> summary =
+                    studyService.summarize(request);
+
+            Note savedNote =
+                    studyService.saveNote(request, summary);
+
+            return ResponseEntity.ok(savedNote);
+
         } catch (Exception e) {
+
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of(
+                            "error",
+                            e.getMessage()
+                    ));
         }
     }
 
     /**
      * GET /api/study/history
-     * Returns: list of all saved notes (newest first)
+     * Fetch all notes from PostgreSQL
      */
     @GetMapping("/history")
-    public ResponseEntity<?> history() {
-        return ResponseEntity.ok(studyService.getHistory());
+    public ResponseEntity<List<Note>> history() {
+
+        return ResponseEntity.ok(
+                studyService.getHistory()
+        );
     }
 
     /**
-     * GET /api/study/health
-     * Quick health check for Postman testing
+     * Health Check
      */
     @GetMapping("/health")
     public ResponseEntity<?> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "OK",
-                "module", "Study Buddy",
-                "message", "Study controller is running"
-        ));
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", "OK",
+                        "module", "Study Buddy",
+                        "message", "Study controller is running"
+                )
+        );
     }
 }
