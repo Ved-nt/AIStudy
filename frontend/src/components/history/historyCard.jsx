@@ -1,116 +1,70 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function HistoryCard({
-  item,
-  type,
-}) {
+export default function HistoryCard({ item, type }) {
 
-  /**
-   * QUIZ HISTORY CARD
-   */
+  const [expanded, setExpanded] = useState(false);
+
+  // =========================
+  // QUIZ HISTORY CARD
+  // =========================
   if (type === "quiz") {
 
     return (
 
       <motion.div
-        whileHover={{
-          y: -6,
-          scale: 1.01,
-        }}
-        transition={{
-          duration: 0.2,
-        }}
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.2 }}
         className="
-          relative
-          overflow-hidden
           border border-violet-500/20
-          bg-white/[0.04]
+          bg-white/[0.03]
           backdrop-blur-2xl
-          rounded-3xl
-          p-6
-          shadow-xl
-          shadow-violet-500/10
+          rounded-2xl
+          p-5
+          shadow-lg
+          shadow-violet-500/5
         "
       >
 
-        {/* Glow */}
-        <div
-          className="
-            absolute
-            top-[-100px]
-            right-[-100px]
-            w-[200px]
-            h-[200px]
-            bg-violet-500/10
-            rounded-full
-            blur-[80px]
-          "
-        />
-
         {/* Header */}
-        <div className="relative z-10 flex items-start justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
 
           <div>
-
-            <p className="
-              text-[11px]
-              tracking-[0.25em]
-              uppercase
-              text-violet-400
-              mb-2
-            ">
-              Quiz Attempt
+            <p className="text-xs text-violet-400 tracking-widest mb-1">
+              QUIZ
             </p>
 
-            <h2 className="text-xl font-semibold text-white">
+            <h3 className="text-lg font-semibold text-white">
               {item.topic}
-            </h2>
-
+            </h3>
           </div>
 
           <div
             className={`
-              px-3 py-1.5
-              rounded-full
-              text-xs
-              font-semibold
-              border
+              px-3 py-1 rounded-full text-xs font-medium border
               ${
                 item.percentage >= 60
-                  ? `
-                    bg-green-500/10
-                    border-green-500/20
-                    text-green-400
-                  `
-                  : `
-                    bg-red-500/10
-                    border-red-500/20
-                    text-red-400
-                  `
+                  ? "bg-green-500/10 text-green-400 border-green-500/20"
+                  : "bg-red-500/10 text-red-400 border-red-500/20"
               }
             `}
           >
-
             {Math.round(item.percentage)}%
-
           </div>
         </div>
 
-        {/* Body */}
-        <div className="relative z-10 space-y-3 text-sm">
+        {/* Details */}
+        <div className="space-y-2 text-sm">
 
           <div className="flex justify-between text-white/60">
             <span>Difficulty</span>
-
-            <span className="text-white">
-              {item.difficulty}
-            </span>
+            <span>{item.difficulty}</span>
           </div>
 
           <div className="flex justify-between text-white/60">
             <span>Score</span>
 
-            <span className="text-white">
+            <span>
               {item.score} / {item.totalQuestions}
             </span>
           </div>
@@ -130,125 +84,102 @@ export default function HistoryCard({
                 : "Failed"}
             </span>
           </div>
-
         </div>
 
         {/* Footer */}
-        <div className="
-          relative z-10
-          mt-6
-          pt-4
-          border-t border-white/5
-        ">
-
+        <div className="mt-5 pt-4 border-t border-white/5">
           <p className="text-xs text-white/30">
-
-            {item.createdAt
-              ? new Date(
-                  item.createdAt
-                ).toLocaleString()
-              : "Unknown Date"}
-
+            {new Date(item.createdAt).toLocaleString()}
           </p>
-
         </div>
       </motion.div>
     );
   }
 
-  /**
-   * STUDY HISTORY CARD
-   */
+  // =========================
+  // STUDY HISTORY CARD
+  // =========================
   return (
 
     <motion.div
-      whileHover={{
-        y: -6,
-        scale: 1.01,
-      }}
-      transition={{
-        duration: 0.2,
-      }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
       className="
-        relative
-        overflow-hidden
         border border-cyan-500/20
-        bg-white/[0.04]
+        rounded-2xl
+        p-5
+        bg-white/[0.03]
         backdrop-blur-2xl
-        rounded-3xl
-        p-6
-        shadow-xl
-        shadow-cyan-500/10
+        shadow-lg
+        shadow-cyan-500/5
       "
     >
 
-      {/* Glow */}
-      <div
-        className="
-          absolute
-          bottom-[-100px]
-          left-[-100px]
-          w-[220px]
-          h-[220px]
-          bg-cyan-500/10
-          rounded-full
-          blur-[90px]
-        "
-      />
-
       {/* Header */}
-      <div className="relative z-10 mb-5">
+      <div className="mb-4">
 
-        <p className="
-          text-[11px]
-          tracking-[0.25em]
-          uppercase
-          text-cyan-400
-          mb-2
-        ">
-          Study Note
+        <p className="text-xs text-cyan-400 tracking-widest mb-1">
+          STUDY NOTE
         </p>
 
-        <h2 className="text-xl font-semibold text-white">
+        <h3 className="text-lg font-semibold text-white">
           {item.title}
-        </h2>
-
+        </h3>
       </div>
 
       {/* Summary */}
-      <div className="relative z-10">
+      <AnimatePresence mode="wait">
 
-        <p className="
-          text-white/65
-          text-sm
-          leading-relaxed
-          line-clamp-5
-        ">
+        <motion.div
+          key={expanded ? "expanded" : "collapsed"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
 
-          {item.summary}
+          <p
+            className={`
+              text-white/70
+              text-sm
+              leading-relaxed
+              whitespace-pre-line
+              transition-all
+              duration-300
+              ${
+                expanded
+                  ? ""
+                  : "line-clamp-4"
+              }
+            `}
+          >
+            {item.summary}
+          </p>
 
-        </p>
+        </motion.div>
 
-      </div>
+      </AnimatePresence>
 
-      {/* Footer */}
-      <div className="
-        relative z-10
-        mt-6
-        pt-4
-        border-t border-white/5
-      ">
+      {/* Buttons */}
+      <div className="flex items-center justify-between mt-5">
+
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="
+            text-xs
+            text-cyan-400
+            hover:text-cyan-300
+            transition-all
+          "
+        >
+          {expanded
+            ? "Show Less ↑"
+            : "Read Full Summary →"}
+        </button>
 
         <p className="text-xs text-white/30">
-
-          {item.createdAt
-            ? new Date(
-                item.createdAt
-              ).toLocaleString()
-            : "Unknown Date"}
-
+          {new Date(item.createdAt).toLocaleString()}
         </p>
-
       </div>
     </motion.div>
   );
