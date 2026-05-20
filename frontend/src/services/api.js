@@ -63,4 +63,14 @@ export const quizAPI = {
     },
 };
 
+export const dashboardAPI = {
+
+  getStats: async () => {
+
+    const res = await api.get("/dashboard");
+
+    return res.data;
+  },
+};
+
 export default api;

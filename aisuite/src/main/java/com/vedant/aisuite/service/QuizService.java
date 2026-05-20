@@ -23,16 +23,22 @@ public class QuizService {
     private final ObjectMapper objectMapper =
             new ObjectMapper();
 
-    // In-memory active quiz store
+    // Questions Store
     private final Map<String, List<Map<String, Object>>>
             quizStore = new HashMap<>();
+
+    // Metadata Store
+    private final Map<String, Map<String, String>>
+            quizMetaStore = new HashMap<>();
 
     public QuizService(
             AIService AIService,
             QuizHistoryRepository quizHistoryRepository
     ) {
+
         this.AIService = AIService;
-        this.quizHistoryRepository = quizHistoryRepository;
+        this.quizHistoryRepository =
+                quizHistoryRepository;
     }
 
     /**
@@ -54,18 +60,48 @@ public class QuizService {
             List<Map<String, Object>> questions =
                     objectMapper.readValue(
                             rawResponse,
-                            new TypeReference<List<Map<String, Object>>>() {}
+                            new TypeReference<
+                                    List<Map<String, Object>>
+                                    >() {}
                     );
 
-            String quizId = UUID.randomUUID().toString();
+            String quizId =
+                    UUID.randomUUID().toString();
 
-            quizStore.put(quizId, questions);
+            // Store Questions
+            quizStore.put(
+                    quizId,
+                    questions
+            );
 
-            // Hide answers from frontend
-            List<Map<String, Object>> clientQuestions =
+            /**
+             * STORE QUIZ META
+             */
+            Map<String, String> meta =
+                    new HashMap<>();
+
+            meta.put(
+                    "topic",
+                    request.getTopic()
+            );
+
+            meta.put(
+                    "difficulty",
+                    request.getDifficulty()
+            );
+
+            quizMetaStore.put(
+                    quizId,
+                    meta
+            );
+
+            // Hide answers
+            List<Map<String, Object>>
+                    clientQuestions =
                     new ArrayList<>();
 
-            for (Map<String, Object> q : questions) {
+            for (Map<String, Object> q :
+                    questions) {
 
                 Map<String, Object> clientQ =
                         new LinkedHashMap<>();
@@ -86,9 +122,12 @@ public class QuizService {
             return Map.of(
                     "quizId", quizId,
                     "topic", request.getTopic(),
-                    "difficulty", request.getDifficulty(),
-                    "totalQuestions", questions.size(),
-                    "questions", clientQuestions
+                    "difficulty",
+                    request.getDifficulty(),
+                    "totalQuestions",
+                    questions.size(),
+                    "questions",
+                    clientQuestions
             );
 
         } catch (Exception e) {
@@ -115,7 +154,7 @@ public class QuizService {
         if (questions == null) {
 
             throw new RuntimeException(
-                    "Quiz not found. Please generate a new quiz."
+                    "Quiz not found."
             );
         }
 
@@ -124,12 +163,18 @@ public class QuizService {
 
         int correct = 0;
 
-        for (QuizSubmitRequest.QuizAnswer answer :
-                submitRequest.getAnswers()) {
+        for (
+                QuizSubmitRequest.QuizAnswer answer
+                : submitRequest.getAnswers()
+        ) {
 
-            int idx = answer.getQuestionIndex();
+            int idx =
+                    answer.getQuestionIndex();
 
-            if (idx < 0 || idx >= questions.size()) {
+            if (
+                    idx < 0
+                            || idx >= questions.size()
+            ) {
                 continue;
             }
 
@@ -137,7 +182,9 @@ public class QuizService {
                     questions.get(idx);
 
             String correctAnswer =
-                    (String) question.get("correctAnswer");
+                    (String) question.get(
+                            "correctAnswer"
+                    );
 
             boolean isCorrect =
                     correctAnswer.equals(
@@ -151,7 +198,10 @@ public class QuizService {
             Map<String, Object> result =
                     new LinkedHashMap<>();
 
-            result.put("questionIndex", idx);
+            result.put(
+                    "questionIndex",
+                    idx
+            );
 
             result.put(
                     "question",
@@ -189,32 +239,50 @@ public class QuizService {
                         : 0;
 
         /**
-         * SAVE QUIZ TO POSTGRESQL
+         * GET REAL META
          */
-        QuizHistory history = new QuizHistory(
-                "Quiz Topic",
-                "MEDIUM",
-                correct,
-                total,
-                percentage
-        );
+        Map<String, String> meta =
+                quizMetaStore.get(quizId);
+
+        String topic =
+                meta.get("topic");
+
+        String difficulty =
+                meta.get("difficulty");
+
+        /**
+         * SAVE REAL QUIZ DATA
+         */
+        QuizHistory history =
+                new QuizHistory(
+                        topic,
+                        difficulty,
+                        correct,
+                        total,
+                        percentage
+                );
 
         quizHistoryRepository.save(history);
 
         return Map.of(
                 "score", correct,
                 "totalQuestions", total,
-                "percentage", Math.round(percentage),
-                "passed", percentage >= 60,
-                "results", results
+                "percentage",
+                Math.round(percentage),
+                "passed",
+                percentage >= 60,
+                "results",
+                results
         );
     }
 
     /**
-     * GET QUIZ HISTORY
+     * Quiz History
      */
-    public List<QuizHistory> getQuizHistory() {
+    public List<QuizHistory>
+    getQuizHistory() {
 
-        return quizHistoryRepository.findAll();
+        return quizHistoryRepository
+                .findAll();
     }
 }

@@ -1,0 +1,28 @@
+package com.vedant.aisuite.controller;
+
+import com.vedant.aisuite.service.DashboardService;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/dashboard")
+@CrossOrigin(origins = "http://localhost:5173")
+public class DashboardController {
+
+    private final DashboardService dashboardService;
+
+    public DashboardController(
+            DashboardService dashboardService
+    ) {
+        this.dashboardService = dashboardService;
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getDashboard() {
+
+        return ResponseEntity.ok(
+                dashboardService.getDashboardStats()
+        );
+    }
+}

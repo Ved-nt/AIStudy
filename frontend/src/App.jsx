@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import StudyBuddy from "./pages/StudyBuddy";
 import QuizGenerator from "./pages/QuizGenerator";
 import History from "./pages/History";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/study" element={<StudyBuddy />} />
         <Route path="/quiz" element={<QuizGenerator />} />
         <Route path="/history" element={<History />} />
+        <Route path="/dashboard" element={<Dashboard />}/>
       </Routes>
     </div>
   );

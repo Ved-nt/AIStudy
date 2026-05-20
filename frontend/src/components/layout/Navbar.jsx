@@ -12,6 +12,7 @@ export default function Navbar() {
     { name: "Study", path: "/study" },
     { name: "Quiz", path: "/quiz" },
     { name: "History", path: "/history" },
+    { name: "Dashboard", path: "/dashboard" },
   ];
 
   return (
