@@ -7,7 +7,7 @@ export default function QuizResult({ result }) {
         </h2>
 
         <p className="text-white/40">
-          {result.score}/{result.total} correct
+          {result.score}/{result.totalQuestions} correct
         </p>
       </div>
     </div>
