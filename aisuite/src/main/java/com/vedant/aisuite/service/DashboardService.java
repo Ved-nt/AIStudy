@@ -3,9 +3,12 @@ package com.vedant.aisuite.service;
 import com.vedant.aisuite.dto.DashboardResponse;
 import com.vedant.aisuite.entity.Note;
 import com.vedant.aisuite.entity.QuizHistory;
+import com.vedant.aisuite.entity.User;
 import com.vedant.aisuite.repository.NoteRepository;
 import com.vedant.aisuite.repository.QuizHistoryRepository;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,24 +30,43 @@ public class DashboardService {
 
     public DashboardResponse getDashboardStats() {
 
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
+
+        /*
+         * USER-SPECIFIC DATA
+         */
         List<QuizHistory> quizzes =
-                quizRepo.findAll();
+                quizRepo.findByUser(user);
 
         List<Note> notes =
-                noteRepo.findAll();
+                noteRepo.findByUser(user);
 
-        // Total quizzes
+        /*
+         * TOTAL QUIZZES
+         */
         long totalQuizzes =
                 quizzes.size();
 
-        // Average Score
+        /*
+         * AVERAGE SCORE
+         */
         double averageScore =
                 quizzes.stream()
-                        .mapToDouble(QuizHistory::getPercentage)
+                        .mapToDouble(
+                                QuizHistory::getPercentage
+                        )
                         .average()
                         .orElse(0);
 
-        // Highest Score
+        /*
+         * HIGHEST SCORE
+         */
         int highestScore =
                 quizzes.stream()
                         .mapToInt(q ->
@@ -53,11 +75,15 @@ public class DashboardService {
                         .max()
                         .orElse(0);
 
-        // Total summaries
+        /*
+         * TOTAL SUMMARIES
+         */
         long totalSummaries =
                 notes.size();
 
-        // Difficulty stats
+        /*
+         * DIFFICULTY STATS
+         */
         Map<String, Long> difficultyStats =
                 new HashMap<>();
 
@@ -91,12 +117,17 @@ public class DashboardService {
                         .count()
         );
 
-        // Recent Activity
+        /*
+         * RECENT ACTIVITY
+         */
         List<Map<String, Object>> activity =
                 new ArrayList<>();
 
         List<QuizHistory> recentQuizzes =
-                quizRepo.findTop5ByOrderByCreatedAtDesc();
+                quizRepo
+                        .findTop5ByUserOrderByCreatedAtDesc(
+                                user
+                        );
 
         for (QuizHistory quiz : recentQuizzes) {
 
@@ -124,7 +155,10 @@ public class DashboardService {
         }
 
         List<Note> recentNotes =
-                noteRepo.findTop5ByOrderByCreatedAtDesc();
+                noteRepo
+                        .findTop5ByUserOrderByCreatedAtDesc(
+                                user
+                        );
 
         for (Note note : recentNotes) {
 
@@ -146,6 +180,9 @@ public class DashboardService {
             activity.add(item);
         }
 
+        /*
+         * SORT BY DATE DESC
+         */
         activity.sort((a, b) ->
                 b.get("createdAt")
                         .toString()

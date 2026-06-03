@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.vedant.aisuite.dto.QuizRequest;
 import com.vedant.aisuite.dto.QuizSubmitRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.vedant.aisuite.entity.User;
 
 import com.vedant.aisuite.entity.QuizHistory;
 import com.vedant.aisuite.repository.QuizHistoryRepository;
@@ -262,6 +266,16 @@ public class QuizService {
                         percentage
                 );
 
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
+
+        history.setUser(user);
+
         quizHistoryRepository.save(history);
 
         return Map.of(
@@ -279,10 +293,20 @@ public class QuizService {
     /**
      * Quiz History
      */
-    public List<QuizHistory>
-    getQuizHistory() {
+    /**
+     * Fetch logged-in user's quiz history only
+     */
+    public List<QuizHistory> getQuizHistory() {
+
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
 
         return quizHistoryRepository
-                .findAll();
+                .findByUser(user);
     }
 }

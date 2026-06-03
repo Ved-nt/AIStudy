@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vedant.aisuite.dto.StudyRequest;
 import com.vedant.aisuite.entity.Note;
 import com.vedant.aisuite.repository.NoteRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.vedant.aisuite.entity.User;
 
 import org.springframework.stereotype.Service;
 
@@ -87,16 +91,37 @@ public class StudyService {
                 summary.get("summary").toString()
         );
 
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
+
+        note.setUser(user);
+
         return noteRepository.save(note);
     }
 
     /**
      * Fetch all saved notes from PostgreSQL.
      */
+    /**
+     * Fetch logged-in user's notes only
+     */
     public List<Note> getHistory() {
 
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
+
         List<Note> notes =
-                noteRepository.findAll();
+                noteRepository.findByUser(user);
 
         Collections.reverse(notes);
 

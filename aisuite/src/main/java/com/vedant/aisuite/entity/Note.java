@@ -14,7 +14,10 @@ public class Note {
 
     private String title;
 
-    @Column(name = "original_text", columnDefinition = "TEXT")
+    @Column(
+            name = "original_text",
+            columnDefinition = "TEXT"
+    )
     private String originalText;
 
     @Column(columnDefinition = "TEXT")
@@ -22,6 +25,10 @@ public class Note {
 
     private LocalDateTime createdAt =
             LocalDateTime.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Note() {
     }
@@ -46,6 +53,10 @@ public class Note {
         return createdAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -56,5 +67,9 @@ public class Note {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
