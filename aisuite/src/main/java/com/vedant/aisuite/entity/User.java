@@ -48,6 +48,14 @@ public class User implements UserDetails {
     private List<QuizHistory> quizzes =
             new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Quiz> generatedQuizzes =
+            new ArrayList<>();
+
     public User() {
     }
 
