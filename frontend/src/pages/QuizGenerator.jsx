@@ -63,6 +63,10 @@ export default function QuizGenerator() {
       toast.success("Quiz generated successfully!");
 
     } catch (err) {
+      if(err.response?.status === 403){
+        navigate("/login");
+        return;
+      }
 
       setError(err.message || "Failed to generate quiz");
 
@@ -126,6 +130,10 @@ export default function QuizGenerator() {
       );
 
     } catch (err) {
+      if(err.response?.status === 403){
+        navigate("/login");
+        return;
+      }
 
       setError(err.message || "Failed to submit quiz");
 

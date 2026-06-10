@@ -43,6 +43,10 @@ export default function StudyBuddy() {
       await summarize();
       toast.success("Summary generated successfully!");
     } catch (err) {
+      if(err.response?.status==403){
+        navigate("/login");
+        return;
+      }
       toast.error("Failed to generate summary.");
     }
   };

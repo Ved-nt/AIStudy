@@ -28,83 +28,71 @@ import BackgroundEffects from "../components/layout/BackgroundEffects";
 import { dashboardAPI } from "../services/api";
 
 export default function Dashboard() {
-
   const [stats, setStats] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState("");
+
   useEffect(() => {
-
     fetchDashboard();
-
   }, []);
 
   const fetchDashboard = async () => {
-
     try {
+      setLoading(true);
 
-      const data =
-        await dashboardAPI.getStats();
+      const data = await dashboardAPI.getStats();
 
       setStats(data);
-
     } catch (err) {
-
       console.error(err);
 
+      setError("Failed to load dashboard");
     } finally {
-
       setLoading(false);
     }
   };
 
   if (loading) {
-
     return (
-
-      <div className="
-        min-h-screen
-        bg-[#07070b]
-        text-white
-        flex
-        items-center
-        justify-center
-      ">
+      <div className="min-h-screen bg-[#07070b] text-white flex items-center justify-center">
         Loading Dashboard...
       </div>
     );
   }
 
-  // Pie Chart Data
-  const difficultyData = [
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#07070b] text-white flex items-center justify-center">
+        {error}
+      </div>
+    );
+  }
 
+  const difficultyData = [
     {
       name: "Easy",
-      value: stats.quizzesByDifficulty.EASY,
+      value: stats?.quizzesByDifficulty?.EASY || 0,
     },
-
     {
       name: "Medium",
-      value: stats.quizzesByDifficulty.MEDIUM,
+      value: stats?.quizzesByDifficulty?.MEDIUM || 0,
     },
-
     {
       name: "Hard",
-      value: stats.quizzesByDifficulty.HARD,
+      value: stats?.quizzesByDifficulty?.HARD || 0,
     },
   ];
 
-  // Performance Chart
   const performanceData = [
-
     {
       name: "Average",
-      score: stats.averageScore,
+      score: stats?.averageScore || 0,
     },
-
     {
       name: "Highest",
-      score: stats.highestScore,
+      score: stats?.highestScore || 0,
     },
   ];
 
@@ -115,106 +103,87 @@ export default function Dashboard() {
   ];
 
   return (
-
-    <div className="
-      min-h-screen
-      bg-[#07070b]
-      text-white
-      relative
-      overflow-hidden
-    ">
-
+    <div className="min-h-screen bg-[#07070b] text-white relative overflow-hidden">
       <BackgroundEffects />
 
       <PageContainer>
 
-        {/* Header */}
+        {/* HEADER */}
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-
-          <h1 className="
-            text-4xl
-            font-bold
-            mb-3
-            bg-gradient-to-r
-            from-violet-400
-            to-cyan-400
-            bg-clip-text
-            text-transparent
-          ">
+          <h1
+            className="
+              text-4xl
+              font-bold
+              mb-3
+              bg-gradient-to-r
+              from-violet-400
+              to-cyan-400
+              bg-clip-text
+              text-transparent
+            "
+          >
             Analytics Dashboard
           </h1>
 
           <p className="text-white/50">
             Monitor your AI learning performance.
           </p>
-
         </motion.div>
 
-        {/* STAT CARDS */}
-        <div className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          xl:grid-cols-4
-          gap-6
-          mb-10
-        ">
-
+        {/* STATS */}
+        <div
+          className="
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            xl:grid-cols-4
+            gap-6
+            mb-10
+          "
+        >
           <StatCard
             icon={<Brain size={22} />}
             title="Total Quizzes"
-            value={stats.totalQuizzesAttempted}
+            value={stats?.totalQuizzesAttempted || 0}
           />
 
           <StatCard
             icon={<Activity size={22} />}
             title="Average Score"
-            value={`${stats.averageScore}%`}
+            value={`${stats?.averageScore || 0}%`}
           />
 
           <StatCard
             icon={<Trophy size={22} />}
             title="Highest Score"
-            value={`${stats.highestScore}%`}
+            value={`${stats?.highestScore || 0}%`}
           />
 
           <StatCard
             icon={<FileText size={22} />}
             title="Summaries"
-            value={stats.totalSummariesGenerated}
+            value={stats?.totalSummariesGenerated || 0}
           />
-
         </div>
 
         {/* CHARTS */}
-        <div className="
-          grid
-          grid-cols-1
-          xl:grid-cols-2
-          gap-6
-          mb-10
-        ">
-
-          {/* PIE CHART */}
+        <div
+          className="
+            grid
+            grid-cols-1
+            xl:grid-cols-2
+            gap-6
+            mb-10
+          "
+        >
+          {/* PIE */}
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             className="
               bg-white/[0.03]
               border border-white/10
@@ -223,60 +192,37 @@ export default function Dashboard() {
               p-6
             "
           >
-
-            <h2 className="
-              text-xl
-              font-semibold
-              mb-6
-            ">
+            <h2 className="text-xl font-semibold mb-6">
               Quiz Difficulty
             </h2>
 
             <div className="h-[300px]">
-
               <ResponsiveContainer>
-
                 <PieChart>
-
                   <Pie
                     data={difficultyData}
                     dataKey="value"
                     outerRadius={100}
                     innerRadius={60}
                   >
-
-                    {difficultyData.map(
-                      (entry, index) => (
-
-                        <Cell
-                          key={index}
-                          fill={COLORS[index]}
-                        />
-                      )
-                    )}
-
+                    {difficultyData.map((item, index) => (
+                      <Cell
+                        key={index}
+                        fill={COLORS[index]}
+                      />
+                    ))}
                   </Pie>
 
                   <Tooltip />
-
                 </PieChart>
-
               </ResponsiveContainer>
-
             </div>
-
           </motion.div>
 
-          {/* BAR CHART */}
+          {/* BAR */}
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             className="
               bg-white/[0.03]
               border border-white/10
@@ -285,23 +231,13 @@ export default function Dashboard() {
               p-6
             "
           >
-
-            <h2 className="
-              text-xl
-              font-semibold
-              mb-6
-            ">
+            <h2 className="text-xl font-semibold mb-6">
               Performance Summary
             </h2>
 
             <div className="h-[300px]">
-
               <ResponsiveContainer>
-
-                <BarChart
-                  data={performanceData}
-                >
-
+                <BarChart data={performanceData}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="#ffffff10"
@@ -318,27 +254,16 @@ export default function Dashboard() {
                     fill="#8b5cf6"
                     radius={[10, 10, 0, 0]}
                   />
-
                 </BarChart>
-
               </ResponsiveContainer>
-
             </div>
-
           </motion.div>
-
         </div>
 
         {/* RECENT ACTIVITY */}
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="
             bg-white/[0.03]
             border border-white/10
@@ -347,88 +272,67 @@ export default function Dashboard() {
             p-6
           "
         >
-
-          <h2 className="
-            text-2xl
-            font-semibold
-            mb-6
-          ">
+          <h2 className="text-2xl font-semibold mb-6">
             Recent Activity
           </h2>
 
-          <div className="space-y-4">
+          {stats?.recentActivity?.length === 0 ? (
+            <p className="text-white/40">
+              No recent activity yet.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {stats?.recentActivity?.map(
+                (activity, index) => (
+                  <div
+                    key={index}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      border-b
+                      border-white/5
+                      pb-4
+                    "
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {activity.type === "quiz"
+                          ? "🧠 Quiz Completed"
+                          : "📖 Study Summary"}
+                      </p>
 
-            {stats.recentActivity.map(
-              (activity, index) => (
+                      <p className="text-sm text-white/50">
+                        {activity.title}
+                      </p>
+                    </div>
 
-                <div
-                  key={index}
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    border-b
-                    border-white/5
-                    pb-4
-                  "
-                >
-
-                  <div>
-
-                    <p className="font-medium">
-
-                      {activity.type === "quiz"
-                        ? "🧠 Quiz Completed"
-                        : "📖 Study Summary"}
-
-                    </p>
-
-                    <p className="
-                      text-sm
-                      text-white/50
-                    ">
-                      {activity.title}
-                    </p>
-
+                    <div className="text-sm text-white/40">
+                      {activity.createdAt
+                        ? new Date(
+                            activity.createdAt
+                          ).toLocaleDateString()
+                        : "-"}
+                    </div>
                   </div>
-
-                  <div className="
-                    text-sm
-                    text-white/40
-                  ">
-
-                    {new Date(
-                      activity.createdAt
-                    ).toLocaleDateString()}
-
-                  </div>
-
-                </div>
-              )
-            )}
-
-          </div>
-
+                )
+              )}
+            </div>
+          )}
         </motion.div>
-
       </PageContainer>
     </div>
   );
 }
-
 
 function StatCard({
   icon,
   title,
   value,
 }) {
-
   return (
-
     <motion.div
-      whileHover={{
-        y: -5,
-      }}
+      whileHover={{ y: -5 }}
       className="
         bg-white/[0.03]
         border border-white/10
@@ -437,37 +341,19 @@ function StatCard({
         p-6
       "
     >
-
-      <div className="
-        flex
-        items-center
-        justify-between
-        mb-5
-      ">
-
-        <div className="
-          text-violet-400
-        ">
+      <div className="flex items-center justify-between mb-5">
+        <div className="text-violet-400">
           {icon}
         </div>
-
       </div>
 
-      <h3 className="
-        text-white/50
-        text-sm
-        mb-2
-      ">
+      <h3 className="text-white/50 text-sm mb-2">
         {title}
       </h3>
 
-      <p className="
-        text-3xl
-        font-bold
-      ">
+      <p className="text-3xl font-bold">
         {value}
       </p>
-
     </motion.div>
   );
 }

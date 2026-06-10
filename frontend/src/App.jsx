@@ -1,5 +1,4 @@
-import { Routes, Route } from "react-router-dom";
-
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import StudyBuddy from "./pages/StudyBuddy";
@@ -7,16 +6,72 @@ import QuizGenerator from "./pages/QuizGenerator";
 import History from "./pages/History";
 import Dashboard from "./pages/Dashboard";
 
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
 export default function App() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
-
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/study" element={<StudyBuddy />} />
-        <Route path="/quiz" element={<QuizGenerator />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/dashboard" element={<Dashboard />}/>
+
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/study"
+          element={
+            <ProtectedRoute>
+              <StudyBuddy />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz"
+          element={
+            <ProtectedRoute>
+              <QuizGenerator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <History />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="*"
+          element={<Navigate to="/" />}
+        />
+
       </Routes>
     </div>
   );

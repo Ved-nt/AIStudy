@@ -43,9 +43,17 @@ export default function History() {
       console.log("Study History:", studyData);
       console.log("Quiz History:", quizData);
 
-      setStudyHistory(studyData || []);
+      setStudyHistory(
+  Array.isArray(studyData)
+    ? studyData
+    : []
+);
 
-      setQuizHistory(quizData || []);
+setQuizHistory(
+  Array.isArray(quizData)
+    ? quizData
+    : []
+);
 
     } catch (err) {
 
@@ -60,9 +68,9 @@ export default function History() {
   };
 
   const currentData =
-    activeTab === "study"
-      ? studyHistory
-      : quizHistory;
+  activeTab === "study"
+    ? (studyHistory || [])
+    : (quizHistory || []);
 
   return (
 
