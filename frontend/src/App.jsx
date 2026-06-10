@@ -5,13 +5,14 @@ import StudyBuddy from "./pages/StudyBuddy";
 import QuizGenerator from "./pages/QuizGenerator";
 import History from "./pages/History";
 import Dashboard from "./pages/Dashboard";
-
+import useIdleLogout from "./hooks/useIdleLogout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 export default function App() {
+  useIdleLogout();
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       <Routes>

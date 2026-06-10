@@ -119,7 +119,7 @@ export default function Navbar() {
           h-20
           border-b border-white/10
           bg-[#0a0a0f]/80
-          backdrop-blur-xl
+          backdrop-blur-2xl
         "
       >
         <div
