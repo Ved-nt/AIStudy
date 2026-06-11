@@ -2,35 +2,30 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api",
+
   headers: {
     "Content-Type": "application/json",
   },
+
+  withCredentials: true,
 });
 
 /*
 |--------------------------------------------------------------------------
-| JWT INTERCEPTOR
+| RESPONSE INTERCEPTOR
 |--------------------------------------------------------------------------
 */
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 api.interceptors.response.use(
   (response) => response,
+
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      localStorage.removeItem("token");
+
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
+
       localStorage.removeItem("user");
 
       window.location.href = "/login";
@@ -47,21 +42,72 @@ api.interceptors.response.use(
 */
 
 export const authAPI = {
-  register: async (name, email, password) => {
-    const res = await api.post("/auth/register", {
-      name,
-      email,
-      password,
-    });
+
+  register: async (
+    name,
+    email,
+    password,
+    rememberMe
+  ) => {
+
+    const res = await api.post(
+      "/auth/register",
+      {
+        name,
+        email,
+        password,
+        rememberMe,
+      },
+      {
+        withCredentials: true,
+      }
+    );
 
     return res.data;
   },
 
-  login: async (email, password) => {
-    const res = await api.post("/auth/login", {
-      email,
-      password,
-    });
+  login: async (
+    email,
+    password,
+    rememberMe
+  ) => {
+
+    const res = await api.post(
+      "/auth/login",
+      {
+        email,
+        password,
+        rememberMe,
+      },
+      {
+        withCredentials: true,
+      }
+    );
+
+    return res.data;
+  },
+
+  me: async () => {
+
+    const res = await api.get(
+      "/auth/me",
+      {
+        withCredentials: true,
+      }
+    );
+
+    return res.data;
+  },
+
+  logout: async () => {
+
+    const res = await api.post(
+      "/auth/logout",
+      {},
+      {
+        withCredentials: true,
+      }
+    );
 
     return res.data;
   },
@@ -74,23 +120,37 @@ export const authAPI = {
 */
 
 export const studyAPI = {
-  summarize: async (text, title) => {
-    const res = await api.post("/study/summarize", {
-      text,
-      title,
-    });
+
+  summarize: async (
+    text,
+    title
+  ) => {
+
+    const res = await api.post(
+      "/study/summarize",
+      {
+        text,
+        title,
+      }
+    );
 
     return res.data;
   },
 
   save: async (payload) => {
-    const res = await api.post("/study/save", payload);
+
+    const res = await api.post(
+      "/study/save",
+      payload
+    );
 
     return res.data;
   },
 
   history: async () => {
-    const res = await api.get("/study/history");
+
+    const res =
+      await api.get("/study/history");
 
     return res.data;
   },
@@ -103,21 +163,30 @@ export const studyAPI = {
 */
 
 export const quizAPI = {
+
   generate: async (
     topic,
     difficulty,
     numberOfQuestions
   ) => {
-    const res = await api.post("/quiz/generate", {
-      topic,
-      difficulty,
-      numberOfQuestions,
-    });
+
+    const res = await api.post(
+      "/quiz/generate",
+      {
+        topic,
+        difficulty,
+        numberOfQuestions,
+      }
+    );
 
     return res.data;
   },
 
-  submit: async (quizId, answers) => {
+  submit: async (
+    quizId,
+    answers
+  ) => {
+
     const res = await api.post(
       `/quiz/submit/${quizId}`,
       {
@@ -129,7 +198,9 @@ export const quizAPI = {
   },
 
   history: async () => {
-    const res = await api.get("/quiz/history");
+
+    const res =
+      await api.get("/quiz/history");
 
     return res.data;
   },
@@ -142,8 +213,11 @@ export const quizAPI = {
 */
 
 export const dashboardAPI = {
+
   getStats: async () => {
-    const res = await api.get("/dashboard");
+
+    const res =
+      await api.get("/dashboard");
 
     return res.data;
   },

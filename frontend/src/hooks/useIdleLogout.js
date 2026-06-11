@@ -1,33 +1,57 @@
-import { useEffect } from "react"; 
-import { useNavigate } from "react-router-dom"; 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function useIdleLogout() { 
-  const navigate = useNavigate(); 
-  
-  useEffect(() => { 
-    let timeout; 
-    const logout = () => { 
-      localStorage.removeItem("token"); 
-      localStorage.removeItem("user"); 
-      
-      navigate("/login"); 
-    }; 
-    
-    const resetTimer = () => { 
-      clearTimeout(timeout); 
-      timeout = setTimeout( 
-        logout, 2 * 60 * 1000 
-      ); 
-    }; 
-    window.addEventListener( "mousemove", resetTimer ); 
-    window.addEventListener( "keydown", resetTimer ); 
-    window.addEventListener( "click", resetTimer ); 
-    resetTimer(); return () => { 
-      
-      clearTimeout(timeout); 
-      window.removeEventListener( "mousemove", resetTimer ); 
-      window.removeEventListener( "keydown", resetTimer ); 
-      window.removeEventListener( "click", resetTimer ); 
-    }; 
-  }, [navigate]); 
+export default function useIdleLogout() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let timeout;
+
+    const logout = () => {
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      sessionStorage.setItem(
+        "logoutMessage",
+        "Session expired due to inactivity. Please log in again."
+      );
+
+      navigate("/login");
+    };
+
+    const resetTimer = () => {
+
+      clearTimeout(timeout);
+
+      timeout = setTimeout(
+        logout,
+        2 * 60 * 1000
+      );
+    };
+
+    const events = [
+      "mousemove",
+      "keydown",
+      "click",
+      "scroll",
+      "touchstart",
+    ];
+
+    events.forEach((event) =>
+      window.addEventListener(event, resetTimer)
+    );
+
+    resetTimer();
+
+    return () => {
+
+      clearTimeout(timeout);
+
+      events.forEach((event) =>
+        window.removeEventListener(event, resetTimer)
+      );
+    };
+
+  }, [navigate]);
 }

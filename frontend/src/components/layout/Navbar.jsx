@@ -34,30 +34,51 @@ export default function Navbar() {
     useState(null);
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("token");
 
-    const storedUser =
-      localStorage.getItem("user");
+  const storedUser =
+    localStorage.getItem("user");
 
-    setIsLoggedIn(!!token);
+  if (storedUser) {
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      setUser(null);
-    }
-  }, [location.pathname]);
+    setUser(
+      JSON.parse(storedUser)
+    );
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    setIsLoggedIn(true);
 
-    setIsLoggedIn(false);
+  } else {
+
     setUser(null);
 
-    navigate("/login");
-  };
+    setIsLoggedIn(false);
+  }
+
+}, [location.pathname]);
+
+  const handleLogout = async () => {
+
+  try {
+
+    await fetch(
+      "http://localhost:8080/api/auth/logout",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+  } catch (err) {
+    console.error(err);
+  }
+
+  localStorage.removeItem("user");
+
+  setIsLoggedIn(false);
+
+  setUser(null);
+
+  navigate("/login");
+};
 
   const navItems = isLoggedIn
     ? [

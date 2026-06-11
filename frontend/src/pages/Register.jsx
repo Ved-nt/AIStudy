@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock } from "lucide-react";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  User,
+  Mail,
+  Lock,
+} from "lucide-react";
 
 import { authAPI } from "../services/api";
 
@@ -8,12 +16,23 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName] =
+    useState("");
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [rememberMe, setRememberMe] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   const handleSubmit = async (e) => {
 
@@ -22,18 +41,15 @@ export default function Register() {
     try {
 
       setLoading(true);
+      setError("");
 
       const data =
         await authAPI.register(
           name,
           email,
-          password
+          password,
+          rememberMe
         );
-
-      localStorage.setItem(
-        "token",
-        data.token
-      );
 
       localStorage.setItem(
         "user",
@@ -43,12 +59,14 @@ export default function Register() {
         })
       );
 
-      navigate("/");
+      navigate("/", {
+        replace: true,
+      });
 
     } catch (err) {
 
       setError(
-        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Registration failed"
       );
 
@@ -59,7 +77,6 @@ export default function Register() {
   };
 
   return (
-
     <div className="
       min-h-screen
       flex
@@ -69,17 +86,9 @@ export default function Register() {
       px-6
     ">
 
-      <div className="
-        absolute
-        inset-0
-        bg-[radial-gradient(circle_at_top,#7c3aed20,transparent_40%)]
-      " />
-
       <form
         onSubmit={handleSubmit}
         className="
-          relative
-          z-10
           w-full
           max-w-md
           p-8
@@ -87,20 +96,14 @@ export default function Register() {
           border border-white/10
           bg-white/[0.03]
           backdrop-blur-3xl
-          shadow-2xl
         "
       >
 
         <h1 className="
           text-4xl
           font-bold
-          mb-2
           text-center
-          bg-gradient-to-r
-          from-violet-400
-          to-cyan-400
-          bg-clip-text
-          text-transparent
+          mb-2
         ">
           Create Account
         </h1>
@@ -121,35 +124,61 @@ export default function Register() {
             bg-red-500/10
             border border-red-500/20
             text-red-400
-            text-sm
           ">
             {error}
           </div>
         )}
 
-        <div className="space-y-4">
+        <InputField
+          icon={<User size={18} />}
+          placeholder="Full Name"
+          value={name}
+          onChange={setName}
+        />
 
-          <InputField
-            icon={<User size={18} />}
-            placeholder="Full Name"
-            value={name}
-            onChange={setName}
+        <InputField
+          icon={<Mail size={18} />}
+          placeholder="Email Address"
+          value={email}
+          onChange={setEmail}
+          type="email"
+        />
+
+        <InputField
+          icon={<Lock size={18} />}
+          placeholder="Password"
+          value={password}
+          onChange={setPassword}
+          type="password"
+        />
+
+        <div className="
+          flex
+          items-center
+          mt-4
+        ">
+
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) =>
+              setRememberMe(
+                e.target.checked
+              )
+            }
           />
 
-          <InputField
-            icon={<Mail size={18} />}
-            placeholder="Email"
-            value={email}
-            onChange={setEmail}
-          />
-
-          <InputField
-            icon={<Lock size={18} />}
-            placeholder="Password"
-            value={password}
-            onChange={setPassword}
-            type="password"
-          />
+          <label
+            htmlFor="rememberMe"
+            className="
+              ml-2
+              text-sm
+              text-white/70
+            "
+          >
+            Remember Me
+          </label>
 
         </div>
 
@@ -160,12 +189,9 @@ export default function Register() {
             mt-6
             py-3
             rounded-xl
-            font-semibold
             bg-gradient-to-r
             from-violet-600
             to-cyan-500
-            hover:opacity-90
-            transition-all
           "
         >
           {loading
@@ -185,7 +211,6 @@ export default function Register() {
             className="
               ml-2
               text-violet-400
-              hover:text-violet-300
             "
           >
             Login
@@ -208,7 +233,6 @@ function InputField({
 }) {
 
   return (
-
     <div className="
       flex
       items-center
@@ -218,11 +242,9 @@ function InputField({
       rounded-xl
       border border-white/10
       bg-black/30
+      mb-4
     ">
-
-      <div className="text-white/40">
-        {icon}
-      </div>
+      {icon}
 
       <input
         type={type}
@@ -231,6 +253,7 @@ function InputField({
         onChange={(e) =>
           onChange(e.target.value)
         }
+        required
         className="
           w-full
           bg-transparent
@@ -238,7 +261,6 @@ function InputField({
           text-white
         "
       />
-
     </div>
   );
 }

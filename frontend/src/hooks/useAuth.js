@@ -1,68 +1,60 @@
 import { useEffect, useState } from "react";
 
+import { authAPI }
+from "../services/api";
+
 export default function useAuth() {
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] =
+    useState(null);
 
   const [loading, setLoading] =
     useState(true);
 
   useEffect(() => {
 
-    const token =
-      localStorage.getItem("token");
+    const checkAuth = async () => {
 
-    const storedUser =
-      localStorage.getItem("user");
+      try {
 
-    if (token && storedUser) {
+        const data =
+          await authAPI.me();
 
-      setUser(
-        JSON.parse(storedUser)
-      );
+        setUser(data);
 
-    } else {
+      } catch {
 
-      setUser(null);
-    }
+        setUser(null);
 
-    setLoading(false);
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
 
   }, []);
 
-  const login = (data) => {
+  const logout = async () => {
 
-    localStorage.setItem(
-      "token",
-      data.token
-    );
+    try {
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        name: data.name,
-        email: data.email,
-      })
-    );
+      await authAPI.logout();
 
-    setUser({
-      name: data.name,
-      email: data.email,
-    });
-  };
+    } finally {
 
-  const logout = () => {
+      setUser(null);
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    setUser(null);
+      localStorage.removeItem(
+        "user"
+      );
+    }
   };
 
   return {
     user,
     loading,
-    login,
     logout,
   };
 }

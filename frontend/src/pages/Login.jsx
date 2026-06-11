@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   Link,
   useNavigate,
@@ -22,96 +23,109 @@ export default function Login() {
   const [password, setPassword] =
     useState("");
 
+  const [rememberMe, setRememberMe] =
+    useState(false);
+
   const [error, setError] =
     useState("");
 
   const [loading, setLoading] =
     useState(false);
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
 
-    e.preventDefault();
+    const message =
+      sessionStorage.getItem(
+        "logoutMessage"
+      );
 
-    try {
+    if (message) {
 
-      setLoading(true);
-      setError("");
+      toast.warning(message);
 
-      const data =
-        await authAPI.login(
-          email,
-          password
+      sessionStorage.removeItem(
+        "logoutMessage"
+      );
+    }
+
+  }, []);
+
+  const handleSubmit =
+    async (e) => {
+
+      e.preventDefault();
+
+      try {
+
+        setLoading(true);
+        setError("");
+
+        const data =
+          await authAPI.login(
+            email,
+            password,
+            rememberMe
+          );
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            name: data.name,
+            email: data.email,
+          })
         );
 
-      localStorage.setItem(
-        "token",
-        data.token
-      );
+        navigate("/", {
+          replace: true,
+        });
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: data.name,
-          email: data.email,
-        })
-      );
+      } catch (err) {
 
-      navigate("/");
+        setError(
+          err.response?.data?.error ||
+          "Invalid email or password"
+        );
 
-    } catch {
+      } finally {
 
-      setError(
-        "Invalid email or password"
-      );
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
+        setLoading(false);
+      }
+    };
 
   return (
-    <div
-      className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        bg-[#07070b]
-        relative
-        overflow-hidden
-        px-6
-      "
-    >
+    <div className="
+      min-h-screen
+      flex
+      items-center
+      justify-center
+      bg-[#07070b]
+      relative
+      overflow-hidden
+      px-6
+    ">
 
-      {/* Background Effects */}
-      <div
-        className="
-          absolute
-          w-[400px]
-          h-[400px]
-          bg-violet-600/20
-          blur-[120px]
-          rounded-full
-          top-[-100px]
-          left-[-100px]
-        "
-      />
+      <div className="
+        absolute
+        w-[400px]
+        h-[400px]
+        bg-violet-600/20
+        blur-[120px]
+        rounded-full
+        top-[-100px]
+        left-[-100px]
+      " />
 
-      <div
-        className="
-          absolute
-          w-[350px]
-          h-[350px]
-          bg-cyan-600/20
-          blur-[120px]
-          rounded-full
-          bottom-[-100px]
-          right-[-100px]
-        "
-      />
+      <div className="
+        absolute
+        w-[350px]
+        h-[350px]
+        bg-cyan-600/20
+        blur-[120px]
+        rounded-full
+        bottom-[-100px]
+        right-[-100px]
+      " />
 
-      {/* Login Card */}
       <form
         onSubmit={handleSubmit}
         className="
@@ -124,50 +138,40 @@ export default function Login() {
           border-white/10
           bg-white/[0.04]
           backdrop-blur-2xl
-          shadow-[0_20px_60px_rgba(0,0,0,0.5)]
         "
       >
 
-        {/* Header */}
-        <div className="mb-8 text-center">
+        <h1 className="
+          text-4xl
+          font-bold
+          text-center
+          mb-2
+        ">
+          Welcome Back
+        </h1>
 
-          <h1
-            className="
-              text-4xl
-              font-bold
-              mb-2
-            "
-          >
-            Welcome Back
-          </h1>
+        <p className="
+          text-center
+          text-white/50
+          mb-8
+        ">
+          Login to continue using
+          AI Study Suite
+        </p>
 
-          <p className="text-white/50">
-            Login to continue using
-            AI Study Suite
-          </p>
-
-        </div>
-
-        {/* Error */}
         {error && (
-
-          <div
-            className="
-              mb-5
-              p-3
-              rounded-xl
-              border
-              border-red-500/20
-              bg-red-500/10
-              text-red-400
-              text-sm
-            "
-          >
+          <div className="
+            mb-5
+            p-3
+            rounded-xl
+            bg-red-500/10
+            border border-red-500/20
+            text-red-400
+          ">
             {error}
           </div>
         )}
 
-        {/* Email */}
         <div className="mb-4 relative">
 
           <Mail
@@ -192,23 +196,16 @@ export default function Login() {
             className="
               w-full
               pl-12
-              pr-4
               py-3
               rounded-xl
               bg-black/40
-              border
-              border-white/10
-              text-white
-              outline-none
-              focus:border-violet-500
-              transition-all
+              border border-white/10
             "
           />
 
         </div>
 
-        {/* Password */}
-        <div className="mb-6 relative">
+        <div className="mb-4 relative">
 
           <Lock
             size={18}
@@ -232,40 +229,54 @@ export default function Login() {
             className="
               w-full
               pl-12
-              pr-4
               py-3
               rounded-xl
               bg-black/40
-              border
-              border-white/10
-              text-white
-              outline-none
-              focus:border-violet-500
-              transition-all
+              border border-white/10
             "
           />
 
         </div>
 
-        {/* Login Button */}
+        <div className="
+          flex
+          items-center
+          mb-6
+        ">
+
+          <input
+            type="checkbox"
+            id="remember"
+            checked={rememberMe}
+            onChange={(e) =>
+              setRememberMe(
+                e.target.checked
+              )
+            }
+          />
+
+          <label
+            htmlFor="remember"
+            className="
+              ml-2
+              text-sm
+              text-white/70
+            "
+          >
+            Remember Me
+          </label>
+
+        </div>
+
         <button
           disabled={loading}
           className="
             w-full
-            flex
-            items-center
-            justify-center
-            gap-2
             py-3
             rounded-xl
-            font-medium
             bg-gradient-to-r
             from-violet-600
             to-fuchsia-600
-            hover:scale-[1.02]
-            transition-all
-            disabled:opacity-50
-            disabled:hover:scale-100
           "
         >
           {loading
@@ -273,20 +284,19 @@ export default function Login() {
             : (
               <>
                 Login
-                <ArrowRight size={18} />
+                <ArrowRight
+                  size={18}
+                  className="inline ml-2"
+                />
               </>
             )}
         </button>
 
-        {/* Register Link */}
-        <div
-          className="
-            mt-6
-            text-center
-            text-white/50
-            text-sm
-          "
-        >
+        <div className="
+          mt-6
+          text-center
+          text-white/50
+        ">
           Don't have an account?
 
           <Link
@@ -294,15 +304,15 @@ export default function Login() {
             className="
               ml-2
               text-violet-400
-              hover:text-violet-300
-              transition-colors
             "
           >
             Create Account
           </Link>
+
         </div>
 
       </form>
+
     </div>
   );
 }
