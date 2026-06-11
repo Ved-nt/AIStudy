@@ -3,6 +3,15 @@ package com.vedant.aisuite.dto;
 public class LoginRequest {
     private String email;
     private String password;
+    private boolean rememberMe;
+
+    public boolean isRememberMe() {
+        return rememberMe;
+    }
+
+    public void setRememberMe(boolean rememberMe) {
+        this.rememberMe = rememberMe;
+    }
 
     public String getEmail() {
         return email;

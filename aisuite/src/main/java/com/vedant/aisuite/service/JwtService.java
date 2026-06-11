@@ -29,18 +29,22 @@ public class JwtService {
      * Generate JWT
      */
     public String generateToken(
-            String email
-    ) {
+            String email,
+            boolean rememberMe
+    )
+    {
+        long expiration =
+                rememberMe
+                        ? 7 * 24 * 60 * 60 * 1000L
+                        : 2 * 60 * 1000L;
 
         return Jwts.builder()
                 .setSubject(email)
-                .setIssuedAt(
-                        new Date()
-                )
+                .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(
                                 System.currentTimeMillis()
-                                        + 1000L * 60 * 60 * 24
+                                        + expiration
                         )
                 )
                 .signWith(
@@ -93,6 +97,7 @@ public class JwtService {
 
     /**
      * Generic Validation
+     *
      */
     public boolean validateToken(
             String token

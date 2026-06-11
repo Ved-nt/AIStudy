@@ -2,8 +2,11 @@ package com.vedant.aisuite.security;
 
 import com.vedant.aisuite.service.JwtService;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.
         UsernamePasswordAuthenticationToken;
@@ -36,8 +39,7 @@ public class JwtAuthenticationFilter
             CustomerUserDetailsService userDetailsService
     ) {
         this.jwtService = jwtService;
-        this.userDetailsService =
-                userDetailsService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -47,28 +49,54 @@ public class JwtAuthenticationFilter
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader =
-                request.getHeader("Authorization");
+        String jwt = null;
 
-        if (
-                authHeader == null
-                        || !authHeader.startsWith("Bearer ")
-        ) {
+        Cookie[] cookies =
+                request.getCookies();
+
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if ("jwt".equals(cookie.getName())) {
+
+                    jwt = cookie.getValue();
+
+                    break;
+                }
+            }
+        }
+
+        if (jwt == null) {
+
             filterChain.doFilter(
                     request,
                     response
             );
+
             return;
         }
 
-        String jwt =
-                authHeader.substring(7);
+        String email;
 
-        String email =
-                jwtService.extractUsername(jwt);
+        try {
+
+            email =
+                    jwtService.extractUsername(jwt);
+
+        } catch (Exception e) {
+
+            filterChain.doFilter(
+                    request,
+                    response
+            );
+
+            return;
+        }
 
         if (
-                email != null &&
+                email != null
+                        &&
                         SecurityContextHolder
                                 .getContext()
                                 .getAuthentication()

@@ -14,7 +14,9 @@ import java.util.Map;
 public class AuthService {
 
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+
     private final JwtService jwtService;
 
     public AuthService(
@@ -27,21 +29,35 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    public Map<String, Object> register(RegisterRequest request) {
+    public Map<String, Object> register(
+            RegisterRequest request
+    ) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+        if (
+                userRepository.existsByEmail(
+                        request.getEmail()
+                )
+        ) {
+            throw new RuntimeException(
+                    "Email already exists"
+            );
         }
 
         User user = new User(
                 request.getName(),
                 request.getEmail(),
-                passwordEncoder.encode(request.getPassword())
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
         );
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token =
+                jwtService.generateToken(
+                        user.getEmail(),
+                        request.isRememberMe()
+                );
 
         return Map.of(
                 "token", token,
@@ -50,24 +66,40 @@ public class AuthService {
         );
     }
 
-    public Map<String, Object> login(LoginRequest request) {
+    public Map<String, Object> login(
+            LoginRequest request
+    ) {
 
-        User user = userRepository
-                .findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password")
+        User user =
+                userRepository
+                        .findByEmail(
+                                request.getEmail()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Invalid email or password"
+                                        )
+                        );
+
+        boolean matches =
+                passwordEncoder.matches(
+                        request.getPassword(),
+                        user.getPassword()
                 );
 
-        boolean matches = passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword()
-        );
-
         if (!matches) {
-            throw new RuntimeException("Invalid email or password");
+
+            throw new RuntimeException(
+                    "Invalid email or password"
+            );
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token =
+                jwtService.generateToken(
+                        user.getEmail(),
+                        request.isRememberMe()
+                );
 
         return Map.of(
                 "token", token,
