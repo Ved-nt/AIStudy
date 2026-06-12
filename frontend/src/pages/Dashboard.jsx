@@ -39,20 +39,37 @@ export default function Dashboard() {
   }, []);
 
   const fetchDashboard = async () => {
-    try {
-      setLoading(true);
 
-      const data = await dashboardAPI.getStats();
+  try {
 
-      setStats(data);
-    } catch (err) {
-      console.error(err);
+    setLoading(true);
 
-      setError("Failed to load dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const [
+      dashboardData,
+      studyData,
+    ] = await Promise.all([
+      dashboardAPI.getStats(),
+      dashboardAPI.getStudyStats(),
+    ]);
+
+    setStats({
+      ...dashboardData,
+      studyStats: studyData,
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    setError(
+      "Failed to load dashboard"
+    );
+
+  } finally {
+
+    setLoading(false);
+  }
+};
 
   if (loading) {
     return (
@@ -140,7 +157,7 @@ export default function Dashboard() {
             grid
             grid-cols-1
             sm:grid-cols-2
-            xl:grid-cols-4
+            xl:grid-cols-6
             gap-6
             mb-10
           "
@@ -167,6 +184,24 @@ export default function Dashboard() {
             icon={<FileText size={22} />}
             title="Summaries"
             value={stats?.totalSummariesGenerated || 0}
+          />
+
+          <StatCard
+            icon={<FileText size={22} />}
+            title="Words Processed"
+            value={
+              stats?.studyStats
+                ?.totalWordsProcessed || 0
+            }
+          />
+
+          <StatCard
+            icon={<Activity size={22} />}
+            title="Compression"
+            value={`${
+              stats?.studyStats
+                ?.averageCompressionPercentage || 0
+            }%`}
           />
         </div>
 

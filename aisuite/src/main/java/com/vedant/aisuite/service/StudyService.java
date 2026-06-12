@@ -3,12 +3,11 @@ package com.vedant.aisuite.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vedant.aisuite.dto.StudyRequest;
 import com.vedant.aisuite.entity.Note;
+import com.vedant.aisuite.entity.User;
 import com.vedant.aisuite.repository.NoteRepository;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import com.vedant.aisuite.entity.User;
-
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,33 +15,39 @@ import java.util.*;
 @Service
 public class StudyService {
 
-    private final AIService AIService;
+    private final AIService aiService;
+
     private final NoteRepository noteRepository;
+
     private final ObjectMapper objectMapper;
 
     public StudyService(
-            AIService AIService,
+            AIService aiService,
             NoteRepository noteRepository,
             ObjectMapper objectMapper
     ) {
-        this.AIService = AIService;
+        this.aiService = aiService;
         this.noteRepository = noteRepository;
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Calls AI service to summarize notes.
-     */
-    public Map<String, Object> summarize(StudyRequest request) {
+    public Map<String, Object> summarize(
+            StudyRequest request
+    ) {
 
         try {
 
             String rawResponse =
-                    AIService.generateSummary(request.getText());
+                    aiService.generateSummary(
+                            request.getText()
+                    );
 
             @SuppressWarnings("unchecked")
             Map<String, Object> parsed =
-                    objectMapper.readValue(rawResponse, Map.class);
+                    objectMapper.readValue(
+                            rawResponse,
+                            Map.class
+                    );
 
             parsed.put(
                     "originalLength",
@@ -51,7 +56,9 @@ public class StudyService {
 
             parsed.put(
                     "wordCount",
-                    request.getText().split("\\s+").length
+                    request.getText()
+                            .split("\\s+")
+                            .length
             );
 
             return parsed;
@@ -66,30 +73,10 @@ public class StudyService {
         }
     }
 
-    /**
-     * Saves note into PostgreSQL database.
-     */
     public Note saveNote(
             StudyRequest request,
             Map<String, Object> summary
     ) {
-
-        Note note = new Note();
-
-        note.setTitle(
-                request.getTitle() != null &&
-                        !request.getTitle().isBlank()
-                        ? request.getTitle()
-                        : "Untitled Note"
-        );
-
-        note.setOriginalText(
-                request.getText()
-        );
-
-        note.setSummary(
-                summary.get("summary").toString()
-        );
 
         Authentication auth =
                 SecurityContextHolder
@@ -99,17 +86,29 @@ public class StudyService {
         User user =
                 (User) auth.getPrincipal();
 
+        Note note = new Note();
+
+        note.setTitle(
+                request.getTitle() != null
+                        && !request.getTitle().isBlank()
+                        ? request.getTitle()
+                        : "Untitled Note"
+        );
+
+        note.setOriginalText(
+                request.getText()
+        );
+
+        note.setSummary(
+                summary.get("summary")
+                        .toString()
+        );
+
         note.setUser(user);
 
         return noteRepository.save(note);
     }
 
-    /**
-     * Fetch all saved notes from PostgreSQL.
-     */
-    /**
-     * Fetch logged-in user's notes only
-     */
     public List<Note> getHistory() {
 
         Authentication auth =
@@ -126,5 +125,93 @@ public class StudyService {
         Collections.reverse(notes);
 
         return notes;
+    }
+
+    /*
+     * STUDY STATS
+     */
+    public Map<String, Object> getStats() {
+
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        User user =
+                (User) auth.getPrincipal();
+
+        List<Note> notes =
+                noteRepository.findByUser(user);
+
+        long totalSummaries =
+                notes.size();
+
+        int totalWordsProcessed =
+                notes.stream()
+                        .mapToInt(note ->
+                                note.getOriginalText() != null
+                                        ? note.getOriginalText()
+                                        .split("\\s+")
+                                        .length
+                                        : 0
+                        )
+                        .sum();
+
+        int totalSummaryWords =
+                notes.stream()
+                        .mapToInt(note ->
+                                note.getSummary() != null
+                                        ? note.getSummary()
+                                        .split("\\s+")
+                                        .length
+                                        : 0
+                        )
+                        .sum();
+
+        double averageCompression = 0;
+
+        if (totalWordsProcessed > 0) {
+
+            averageCompression =
+                    (
+                            (double)
+                                    totalSummaryWords
+                                    /
+                                    totalWordsProcessed
+                    ) * 100;
+        }
+
+        List<Note> recentNotes =
+                noteRepository
+                        .findTop5ByUserOrderByCreatedAtDesc(
+                                user
+                        );
+
+        Map<String, Object> stats =
+                new HashMap<>();
+
+        stats.put(
+                "totalSummaries",
+                totalSummaries
+        );
+
+        stats.put(
+                "totalWordsProcessed",
+                totalWordsProcessed
+        );
+
+        stats.put(
+                "averageCompressionPercentage",
+                Math.round(
+                        averageCompression
+                )
+        );
+
+        stats.put(
+                "recentNotes",
+                recentNotes
+        );
+
+        return stats;
     }
 }

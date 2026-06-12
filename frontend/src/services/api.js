@@ -212,12 +212,26 @@ export const quizAPI = {
 |--------------------------------------------------------------------------
 */
 
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD API
+|--------------------------------------------------------------------------
+*/
+
 export const dashboardAPI = {
 
   getStats: async () => {
 
     const res =
       await api.get("/dashboard");
+
+    return res.data;
+  },
+
+  getStudyStats: async () => {
+
+    const res =
+      await api.get("/study/stats");
 
     return res.data;
   },

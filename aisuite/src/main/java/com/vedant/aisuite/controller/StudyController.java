@@ -14,78 +14,60 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/study")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowCredentials = "true"
+)
 public class StudyController {
 
     private final StudyService studyService;
 
-    public StudyController(StudyService studyService) {
+    public StudyController(
+            StudyService studyService
+    ) {
         this.studyService = studyService;
     }
 
-    /**
-     * POST /api/study/summarize
-     * Body:
-     * {
-     *   "text": "your notes",
-     *   "title": "optional"
-     * }
-     */
     @PostMapping("/summarize")
     public ResponseEntity<?> summarize(
-            @Valid @RequestBody StudyRequest request
+            @Valid
+            @RequestBody
+            StudyRequest request
     ) {
 
-        try {
+        Map<String, Object> result =
+                studyService.summarize(
+                        request
+                );
 
-            Map<String, Object> result =
-                    studyService.summarize(request);
-
-            return ResponseEntity.ok(result);
-
-        } catch (Exception e) {
-
-            return ResponseEntity.internalServerError()
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()
-                    ));
-        }
+        return ResponseEntity.ok(
+                result
+        );
     }
 
-    /**
-     * POST /api/study/save
-     * Saves note in PostgreSQL
-     */
     @PostMapping("/save")
     public ResponseEntity<?> save(
-            @Valid @RequestBody StudyRequest request
+            @Valid
+            @RequestBody
+            StudyRequest request
     ) {
 
-        try {
+        Map<String, Object> summary =
+                studyService.summarize(
+                        request
+                );
 
-            Map<String, Object> summary =
-                    studyService.summarize(request);
+        Note note =
+                studyService.saveNote(
+                        request,
+                        summary
+                );
 
-            Note savedNote =
-                    studyService.saveNote(request, summary);
-
-            return ResponseEntity.ok(savedNote);
-
-        } catch (Exception e) {
-
-            return ResponseEntity.internalServerError()
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()
-                    ));
-        }
+        return ResponseEntity.ok(
+                note
+        );
     }
 
-    /**
-     * GET /api/study/history
-     * Fetch all notes from PostgreSQL
-     */
     @GetMapping("/history")
     public ResponseEntity<List<Note>> history() {
 
@@ -94,9 +76,17 @@ public class StudyController {
         );
     }
 
-    /**
-     * Health Check
+    /*
+     * STUDY DASHBOARD STATS
      */
+    @GetMapping("/stats")
+    public ResponseEntity<?> stats() {
+
+        return ResponseEntity.ok(
+                studyService.getStats()
+        );
+    }
+
     @GetMapping("/health")
     public ResponseEntity<?> health() {
 
@@ -104,7 +94,8 @@ public class StudyController {
                 Map.of(
                         "status", "OK",
                         "module", "Study Buddy",
-                        "message", "Study controller is running"
+                        "message",
+                        "Study controller is running"
                 )
         );
     }
