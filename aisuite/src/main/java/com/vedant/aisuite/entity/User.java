@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -32,6 +33,7 @@ public class User implements UserDetails {
     private LocalDateTime createdAt =
             LocalDateTime.now();
 
+    @JsonIgnore
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -40,6 +42,7 @@ public class User implements UserDetails {
     private List<Note> notes =
             new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -48,6 +51,7 @@ public class User implements UserDetails {
     private List<QuizHistory> quizzes =
             new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -55,6 +59,25 @@ public class User implements UserDetails {
     )
     private List<Quiz> generatedQuizzes =
             new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ChatMessage> chatMessages =
+            new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ChatConversation> conversations =
+            new ArrayList<>();
+
 
     public User() {
     }
@@ -132,6 +155,26 @@ public class User implements UserDetails {
         this.quizzes = quizzes;
     }
 
+    public List<Quiz> getGeneratedQuizzes() {
+        return generatedQuizzes;
+    }
+
+    public void setGeneratedQuizzes(
+            List<Quiz> generatedQuizzes
+    ) {
+        this.generatedQuizzes = generatedQuizzes;
+    }
+
+    public List<ChatMessage> getChatMessages() {
+        return chatMessages;
+    }
+
+    public void setChatMessages(
+            List<ChatMessage> chatMessages
+    ) {
+        this.chatMessages = chatMessages;
+    }
+
     // ======================
     // UserDetails Methods
     // ======================
@@ -171,5 +214,20 @@ public class User implements UserDetails {
     public boolean isEnabled() {
 
         return true;
+    }
+
+    public List<ChatConversation>
+    getConversations() {
+
+        return conversations;
+    }
+
+    public void setConversations(
+            List<ChatConversation>
+                    conversations
+    ) {
+
+        this.conversations =
+                conversations;
     }
 }

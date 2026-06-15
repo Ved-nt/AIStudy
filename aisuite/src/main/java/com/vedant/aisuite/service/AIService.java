@@ -21,34 +21,72 @@ public class AIService {
     @Value("${groq.api.model}")
     private String model;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate =
+            new RestTemplate();
 
-    public String chat(String systemPrompt, String userMessage) {
+    private final ObjectMapper objectMapper =
+            new ObjectMapper();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
+    public String chat(
+            String systemPrompt,
+            String userMessage
+    ) {
 
-        List<Map<String, String>> messages = new ArrayList<>();
+        HttpHeaders headers =
+                new HttpHeaders();
 
-        messages.add(Map.of(
-                "role", "system",
-                "content", systemPrompt
-        ));
+        headers.setContentType(
+                MediaType.APPLICATION_JSON
+        );
 
-        messages.add(Map.of(
-                "role", "user",
-                "content", userMessage
-        ));
+        headers.setBearerAuth(
+                apiKey
+        );
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("model", model);
-        body.put("messages", messages);
-        body.put("temperature", 0.7);
+        List<Map<String, String>> messages =
+                new ArrayList<>();
+
+        messages.add(
+                Map.of(
+                        "role",
+                        "system",
+                        "content",
+                        systemPrompt
+                )
+        );
+
+        messages.add(
+                Map.of(
+                        "role",
+                        "user",
+                        "content",
+                        userMessage
+                )
+        );
+
+        Map<String, Object> body =
+                new HashMap<>();
+
+        body.put(
+                "model",
+                model
+        );
+
+        body.put(
+                "messages",
+                messages
+        );
+
+        body.put(
+                "temperature",
+                0.7
+        );
 
         HttpEntity<Map<String, Object>> request =
-                new HttpEntity<>(body, headers);
+                new HttpEntity<>(
+                        body,
+                        headers
+                );
 
         try {
 
@@ -60,7 +98,9 @@ public class AIService {
                     );
 
             JsonNode root =
-                    objectMapper.readTree(response.getBody());
+                    objectMapper.readTree(
+                            response.getBody()
+                    );
 
             return root
                     .path("choices")
@@ -70,14 +110,21 @@ public class AIService {
                     .asText();
 
         } catch (Exception e) {
+
             throw new RuntimeException(
-                    "Groq API call failed: " + e.getMessage(),
+                    "Groq API call failed: "
+                            + e.getMessage(),
                     e
             );
         }
     }
 
-    public String generateSummary(String text) {
+    /*
+     * STUDY SUMMARIZER
+     */
+    public String generateSummary(
+            String text
+    ) {
 
         String systemPrompt = """
             You are an expert study assistant.
@@ -113,13 +160,19 @@ public class AIService {
             """;
 
         String userMessage = """
-            Summarize the following study notes in detail:
+            Summarize the following study notes:
 
             """ + text;
 
-        return chat(systemPrompt, userMessage);
+        return chat(
+                systemPrompt,
+                userMessage
+        );
     }
 
+    /*
+     * QUIZ GENERATOR
+     */
     public String generateQuiz(
             String topic,
             String difficulty,
@@ -127,32 +180,67 @@ public class AIService {
     ) {
 
         String systemPrompt = """
-                You are an expert quiz creator.
-                Return ONLY valid JSON array.
+            You are an expert quiz creator.
 
-                Format:
-                [
-                  {
-                    "question": "Question?",
-                    "options": [
-                      "A) Option",
-                      "B) Option",
-                      "C) Option",
-                      "D) Option"
-                    ],
-                    "correctAnswer": "A) Option",
-                    "explanation": "Explanation"
-                  }
-                ]
-                """;
+            Return ONLY valid JSON array.
 
-        String userMessage = String.format(
-                "Generate %d %s MCQ questions on topic: %s",
-                numberOfQuestions,
-                difficulty,
-                topic
+            Format:
+            [
+              {
+                "question": "Question?",
+                "options": [
+                  "A) Option",
+                  "B) Option",
+                  "C) Option",
+                  "D) Option"
+                ],
+                "correctAnswer": "A) Option",
+                "explanation": "Explanation"
+              }
+            ]
+            """;
+
+        String userMessage =
+                String.format(
+                        "Generate %d %s MCQ questions on topic: %s",
+                        numberOfQuestions,
+                        difficulty,
+                        topic
+                );
+
+        return chat(
+                systemPrompt,
+                userMessage
         );
+    }
 
-        return chat(systemPrompt, userMessage);
+    /*
+     * AI TUTOR CHAT
+     */
+    public String askTutor(
+            String question
+    ) {
+
+        String systemPrompt = """
+            You are AI Study Tutor.
+
+            Your role:
+            - Explain concepts clearly.
+            - Teach like a friendly professor.
+            - Give examples whenever useful.
+            - Break difficult topics into simple steps.
+            - Help students understand, not just memorize.
+            - If asked coding questions, explain code with examples.
+            - If asked math questions, solve step-by-step.
+            - Keep answers educational and structured.
+
+            Never mention that you are an AI model.
+            Focus on learning and understanding.
+            """;
+
+        return chat(
+                systemPrompt,
+                question
+        );
     }
 }
