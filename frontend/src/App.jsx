@@ -7,6 +7,7 @@ import StudyBuddy from "./pages/StudyBuddy";
 import QuizGenerator from "./pages/QuizGenerator";
 import History from "./pages/History";
 import Dashboard from "./pages/Dashboard";
+import ChatTutor from "./pages/ChatTutor";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -70,6 +71,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatTutor />
+            </ProtectedRoute>
+          }
+        />
+      
 
         <Route
           path="*"

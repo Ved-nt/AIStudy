@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   LogIn,
   UserPlus,
+  MessageSquare
 } from "lucide-react";
 
 export default function Navbar() {
@@ -106,6 +107,11 @@ export default function Navbar() {
           name: "Dashboard",
           path: "/dashboard",
           icon: LayoutDashboard,
+        },
+        {
+          name: "Chat",
+          path: "/chat",
+          icon: MessageSquare,
         },
       ]
     : [

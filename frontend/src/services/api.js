@@ -237,4 +237,51 @@ export const dashboardAPI = {
   },
 };
 
+export const chatAPI = {
+
+  createConversation: async () => {
+
+    const res = await api.post(
+      "/chat/conversations"
+    );
+
+    return res.data;
+  },
+
+  getConversations: async () => {
+
+    const res = await api.get(
+      "/chat/conversations"
+    );
+
+    return res.data;
+  },
+
+  getConversationMessages: async (
+    conversationId
+  ) => {
+
+    const res = await api.get(
+      `/chat/conversations/${conversationId}`
+    );
+
+    return res.data;
+  },
+
+  sendMessage: async (
+    conversationId,
+    message
+  ) => {
+
+    const res = await api.post(
+      `/chat/conversations/${conversationId}/ask`,
+      {
+        message,
+      }
+    );
+
+    return res.data;
+  },
+};
+
 export default api;
