@@ -3,8 +3,6 @@ target/
 *.iml
 .DS_Store
 
-# application secrets
-src/main/resources/application.properties
 
 # logs
 *.log
