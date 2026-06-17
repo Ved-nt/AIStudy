@@ -4,9 +4,10 @@ import com.vedant.aisuite.dto.LoginRequest;
 import com.vedant.aisuite.dto.RegisterRequest;
 import com.vedant.aisuite.service.AuthService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,54 +15,75 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-
 public class AuthController {
 
     private final AuthService authService;
 
-    public AuthController(
-            AuthService authService
-    ) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
+    /*
+     * REGISTER
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(
             @RequestBody RegisterRequest request,
             HttpServletResponse response
     ) {
 
-        Map<String, Object> result =
-                authService.register(request);
+        Map<String, Object> result = authService.register(request);
 
-        Cookie cookie =
-                new Cookie(
-                        "jwt",
-                        (String) result.get("token")
-                );
+        ResponseCookie cookie = ResponseCookie.from("jwt", (String) result.get("token"))
+                .httpOnly(true)
+                .secure(true) // REQUIRED for Vercel + Render (HTTPS)
+                .path("/")
+                .sameSite("None") // IMPORTANT for cross-site cookies
+                .maxAge(request.isRememberMe() ? 604800 : 120)
+                .build();
 
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // true in production (HTTPS)
-        cookie.setPath("/");
-
-        cookie.setMaxAge(
-                request.isRememberMe()
-                        ? 604800
-                        : 120
-        );
-
-        response.addCookie(cookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(
                 Map.of(
-                        "name",
-                        result.get("name"),
-                        "email",
-                        result.get("email")
+                        "name", result.get("name"),
+                        "email", result.get("email")
                 )
         );
     }
 
+    /*
+     * LOGIN
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request,
+            HttpServletResponse response
+    ) {
+
+        Map<String, Object> result = authService.login(request);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", (String) result.get("token"))
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("None")
+                .maxAge(request.isRememberMe() ? 604800 : 120)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "name", result.get("name"),
+                        "email", result.get("email")
+                )
+        );
+    }
+
+    /*
+     * ME (AUTH CHECK)
+     */
     @GetMapping("/me")
     public ResponseEntity<?> me(
             org.springframework.security.core.Authentication authentication
@@ -78,65 +100,25 @@ public class AuthController {
         );
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody LoginRequest request,
-            HttpServletResponse response
-    ) {
-
-        Map<String, Object> result =
-                authService.login(request);
-
-        Cookie cookie =
-                new Cookie(
-                        "jwt",
-                        (String) result.get("token")
-                );
-
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // true in production
-        cookie.setPath("/");
-
-        cookie.setMaxAge(
-                request.isRememberMe()
-                        ? 604800
-                        : 120
-        );
-
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok(
-                Map.of(
-                        "name",
-                        result.get("name"),
-                        "email",
-                        result.get("email")
-                )
-        );
-    }
-
+    /*
+     * LOGOUT
+     */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-            HttpServletResponse response
-    ) {
+    public ResponseEntity<?> logout(HttpServletResponse response) {
 
-        Cookie cookie =
-                new Cookie(
-                        "jwt",
-                        ""
-                );
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("None")
+                .maxAge(0)
+                .build();
 
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-
-        response.addCookie(cookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(
                 Map.of(
-                        "message",
-                        "Logged out successfully"
+                        "message", "Logged out successfully"
                 )
         );
     }
