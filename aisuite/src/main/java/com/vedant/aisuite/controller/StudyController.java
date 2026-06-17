@@ -14,10 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/study")
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        allowCredentials = "true"
-)
+
 public class StudyController {
 
     private final StudyService studyService;
