@@ -41,7 +41,7 @@ public class AuthController {
                 );
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // true in production (HTTPS)
+        cookie.setSecure(true); // true in production (HTTPS)
         cookie.setPath("/");
 
         cookie.setMaxAge(
@@ -94,7 +94,7 @@ public class AuthController {
                 );
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // true in production
+        cookie.setSecure(true); // true in production
         cookie.setPath("/");
 
         cookie.setMaxAge(
