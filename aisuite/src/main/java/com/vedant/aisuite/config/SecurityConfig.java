@@ -69,7 +69,7 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://ai-study-ochre.vercel.app"
+                "https://ai-study-pied.vercel.app"
         ));
 
         config.setAllowedHeaders(List.of("*"));
