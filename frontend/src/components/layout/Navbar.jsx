@@ -60,13 +60,14 @@ export default function Navbar() {
 
   try {
 
-    await fetch(
-      "http://localhost:8080/api/auth/logout",
-      {
-        method: "POST",
-        credentials: "include",
-      }
-    );
+    await authAPI.logout();
+
+    localStorage.removeItem("user");
+
+    setIsLoggedIn(false);
+    setUser(null);
+
+    navigate("/login");
 
   } catch (err) {
     console.error(err);
